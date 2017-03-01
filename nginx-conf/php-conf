@@ -1,0 +1,84 @@
+# This configuration is for PHP 5.6 fpm
+#
+# Author: Juan Jose López González
+# Twitter: @JuanneloSoft
+# Date: 2017 March 7
+
+server
+     {
+         # GENERAL CONFIGS
+         listen 80; # PORT
+         server_name <servername.com>;
+         root <path>;
+
+         index index.html index.htm index.php;
+	 client_max_body_size <numeric value>M; # Megabytes of file size
+         client_body_buffer_size 2048k;
+
+         location ~* \.(ico|css|js|gif|jpe?g|png)$
+        {   
+            expires max;
+            add_header Pragma public;
+            try_files $uri /index.html;
+        }
+
+         # ROOT Location
+         location / {
+             try_files $uri $uri/ @rewrites;
+         }
+
+         location @rewrites {
+             if (!-e $request_filename)
+            {   
+                rewrite ^/(.*)$ /index.php/$1 last;
+                break;
+            }
+         }
+
+         location = /favicon.ico {
+             access_log off;
+             log_not_found off;
+         }
+
+
+
+         location ~ /\. {
+             access_log off;
+             log_not_found off;
+             deny all;
+         }
+
+         # PHP Configs
+         fastcgi_intercept_errors on;
+
+         location ~ \.php {
+             fastcgi_split_path_info ^(.+\.php)(/.+)$;
+
+             fastcgi_param  PATH_INFO            $fastcgi_path_info;
+             fastcgi_param  PATH_TRANSLATED      $document_root$fastcgi_path_info;
+
+             fastcgi_param  QUERY_STRING         $query_string;
+             fastcgi_param  REQUEST_METHOD       $request_method;
+             fastcgi_param  CONTENT_TYPE         $content_type;
+             fastcgi_param  CONTENT_LENGTH       $content_length;
+
+             fastcgi_param  SCRIPT_NAME          $fastcgi_script_name;
+             fastcgi_param  SCRIPT_FILENAME      $document_root$fastcgi_script_name;
+             fastcgi_param  REQUEST_URI          $request_uri;
+             fastcgi_param  DOCUMENT_URI         $document_uri;
+             fastcgi_param  DOCUMENT_ROOT        $document_root;
+             fastcgi_param  SERVER_PROTOCOL      $server_protocol;
+
+             fastcgi_param  SERVER_SOFTWARE      nginx;
+
+             fastcgi_param  REMOTE_ADDR          $remote_addr;
+             fastcgi_param  REMOTE_PORT          $remote_port;
+             fastcgi_param  SERVER_ADDR          $server_addr;
+             fastcgi_param  SERVER_PORT          $server_port;
+             fastcgi_param  SERVER_NAME          $server_name;
+
+             fastcgi_index  index.php;
+             fastcgi_pass unix:/var/run/php/php5.6-fpm.sock;  # route of php fpm socket
+             fastcgi_param   PATH_TRANSLATED     $document_root$fastcgi_path_info;
+         }
+     }
