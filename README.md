@@ -1,1 +1,1 @@
-# development-configuration
+# document-configuration
